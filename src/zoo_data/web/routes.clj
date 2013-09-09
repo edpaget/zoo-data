@@ -1,6 +1,7 @@
 (ns zoo-data.web.routes
   (:use ring.middleware.json
-        ring.middleware.stacktrace)
+        ring.middleware.stacktrace
+        [clojure.string :only [upper-case]])
   (:require [compojure.core :as cmpj :refer [OPTIONS 
                                              GET 
                                              POST 
@@ -30,13 +31,14 @@
 
 (defn wrap-cors
   [handler]
-  (fn [req] (let [response (handler req)]
-              (update-in response 
-                         [:headers] 
-                         merge 
-                         {"Access-Control-Allow-Origin" "*"
-                          "Access-Control-Allow_headers" "content-type"
-                          "Access-Control-Allow-Methods" "GET OPTIONS PUT POST DELETE"}))))
+  (fn [req] 
+    (let [response (handler req)]
+      (update-in response 
+                 [:headers] 
+                 merge 
+                 {"Access-Control-Allow-Origin" "*"
+                  "Access-Control-Allow-Headers" "content-type"
+                  "Access-Control-Allow-Methods" "GET, OPTIONS, PUT, POST, DELETE"}))))
 
 (defroutes app-routes
   (cmpj/routes
@@ -51,7 +53,7 @@
                                (POST "/" [params]
                                      (resp-created (c/create user-id project-name params)))
                                (PUT "/:id" [id params] 
-                                    (resp-ok (c/update-col id params)))
+                                    (resp-ok (c/update-col id params project-name)))
                                (DELETE "/:id" [id]
                                        (resp-no-content (c/delete-col id)))
                                (GET "/:id/data" [id] (resp-ok (c/get-data id project-name))))))))

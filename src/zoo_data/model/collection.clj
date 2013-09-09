@@ -41,7 +41,10 @@
     col))
 
 (defn update-col
-  [id params]
+  [id params project]
+  (delete (str (project-to-table project) "-collections")
+          (where {:collection_id (Integer. id)}))
+  (build-collection params (Integer. id) project)
   (update collections
           (set-fields {:params params})
           (where {:id (Integer. id)})))
