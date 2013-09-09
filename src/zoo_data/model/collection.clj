@@ -66,13 +66,14 @@
   [id project]
   (let [table (project-to-table project)
         join-table (str table "-collections")
-        join-table-fk (str (str/replace project "_" "-") "-member_id")]
-    (select join-table
-            (fields (keyword (str table ".ra"))
-                    (keyword (str table ".dec")) 
-                    (keyword (str table ".zooniverse-id")) 
-                    (keyword (str table ".sdss-photo-id")) 
-                    (keyword (str table ".attributes")))
-            (where {:collection_id (Integer. id)})
-            (join table (= (keyword (str table ".id")) 
-                           (keyword (str join-table "." join-table-fk)))))))
+        join-table-fk (str (str/replace project "_" "-") "-member_id")
+        results (select join-table
+                (fields [(keyword (str table ".zooniverse-id")) :uid] 
+                        (keyword (str table ".ra"))
+                        (keyword (str table ".dec")) 
+                        (keyword (str table ".sdss-photo-id")) 
+                        (keyword (str table ".attributes")))
+                (where {:collection_id (Integer. id)})
+                (join table (= (keyword (str table ".id")) 
+                               (keyword (str join-table "." join-table-fk)))))]
+    (map #(dissoc (merge % (:attributes %)) :attributes) results)))
