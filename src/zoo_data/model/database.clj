@@ -3,7 +3,6 @@
   (:require [taoensso.carmine :as car]))
 
 (def redis-connection nil)
-(def postgres-connection nil)
 
 (defmacro wcar* [& body] `(car/wcar redis-connection ~@body))
 
@@ -20,4 +19,4 @@
 (defn create!
   [post-conn red-conn]
   (alter-var-root #'redis-connection (constantly red-conn)) 
-  (alter-var-root #'postgres-connection (constantly (defdb pg (postgres post-conn)))))
+  (defdb pg (postgres post-conn)))

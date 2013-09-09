@@ -42,7 +42,8 @@
                                              (PUT "/:id" [id params] 
                                                   (resp-ok (c/update-col id params)))
                                              (DELETE "/:id" [id]
-                                                     (resp-no-content (c/delete-col id)))))))]
+                                                     (resp-no-content (c/delete-col id)))
+                                             (GET "/:id/data" [id] (resp-ok (c/get-data id project-name)))))))]
     (-> (wrap-json-response handler)
         wrap-json-params
         wrap-stacktrace)))
