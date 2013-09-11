@@ -11,7 +11,7 @@
 
 (defmulti build-collection (fn [params & _] (keyword (params "type"))))
 (defmethod build-collection :talk-collection [{:strs [talk-collection]} id project]
-  (let [subjects (-> (str "https://api.zooniverse.org/projects/" 
+  (let [subjects (-> (str "http://localhost:3000/projects/" 
                           project "/talk/collections/" 
                           talk-collection)
                      (client/get {:as :json})
