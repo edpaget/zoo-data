@@ -3,35 +3,33 @@
                             bigint boolean char double float time])
   (:use (lobos [migration :only [defmigration]] core schema
                config helpers)))
-
+ 
+(defmigration add-projects-table
+  (up []
+      (create
+        (tbl :projects
+             (varchar :name 255)
+             (varchar :primary-index 255)
+             (varchar :secondary-index 255)
+             (varchar :data-table 255)
+             (varchar :classification-table 255))))
+  (down [] (drop (table :projects))))
+ 
 (defmigration add-collections-table
   (up [] 
       (create
         (tbl :collections
              (varchar :user 100)
-             (varchar :project 100)
-             (column :params (data-type :hstore))))
+             (varchar :project 255)
+             (column :params (data-type :hstore))
+             (refer-to :projects)))
       (index :collections [:user :project]))
   (down [] (drop (table :collections))))
 
-(defmigration add-galaxy-zoo-starburst-members-table
+(defmigration add-auth-table
   (up []
       (create
-        (-> (table :galaxy-zoo-starburst-members)
-            surrogate-key
-            (varchar :zooniverse-id 20)
-            (varchar :sdss-photo-id 40)
-            (float :ra)
-            (float :dec)
-            (column :attributes (data-type :hstore))))
-      (index :galaxy-zoo-starburst-members [:zooniverse-id])
-      (index :galaxy-zoo-starburst-members [:sdss-photo-id]))
-  (down [] (drop (table :galaxy-zoo-starburst-members))))
-
-(defmigration add-galaxy-zoo-starburst-members-collections
-  (up []
-      (create 
-        (tbl :galaxy-zoo-starburst-members-collections
-             (refer-to :galaxy-zoo-starburst-members)
-             (refer-to :collections))))
-  (down [] (drop (table :galaxy-zoo-starburst-members-collections))))
+        (tbl :auth
+             (varchar :auth-id 255)
+             (varchar :api-key 255))))
+  (down [] (drop (table :auth))))

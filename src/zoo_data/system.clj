@@ -1,22 +1,45 @@
 (ns zoo-data.system
   (:require [zoo-data.web.server :as s]
             [zoo-data.web.routes :as r]
-            [zoo-data.model.database :as db]))
+            [zoo-data.model.database :as db]
+            [clojure.string :as str]))
+
+(def default-postgres 
+  {:db "zoo-data"
+   :user "edward"
+   :password ""
+   :host "localhost"
+   :port "5432"})
+
+(def default-redis
+  {:spec {:host "127.0.0.01"
+          :port 6379
+          :db 2}
+   :pool {}})
+
+(defn postgres-url-to-korma
+  [url]
+  (let [url (java.net.URI url)
+        [username password] (str/split (.getUserInfo url) #":")]
+    {:db (.getPath url)
+     :user username
+     :password password
+     :host (.getHost url)
+     :port (.getPort url)}))
 
 (defn system
   "Returns configuration for a new instance of the application"
   [& [port]]
-  {:postgres {:db "zoo-data"
-              :user "edward"
-              :password ""
-              :host "localhost"
-              :port "5432"}
-   :redis {:spec {:host "127.0.0.01"
-                  :port 6379
-                  :db 2}
-           :pool {}}
-   :handler (r/routes)
-   :port (or port 3002)})
+  (let [redis-url (get (System/getenv) "REDISTOGO")
+        postgres-url (get (System/getenv) "HEROKU_POSTGRESQL_BLACK_URL")]
+    {:postgres (if postgres-url
+                 (postgres-url-to-korma postgres-url)
+                 default-postgres)
+     :redis (if redis-url
+              {:pool {} :spec {:url redis-url}}
+              default-redis)
+     :handler (r/routes)
+     :port (or port 3002)}))
 
 (defn start
   "Runs the application based on configuration."

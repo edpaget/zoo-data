@@ -9,11 +9,13 @@
   [project]
   (str (str/replace project "_" "-") "-members"))
 
+(defn- ouroboros-url
+  [project]
+  (str (get (System/getenv) "ZOONIVERSE_API") "/projects/" project))
+
 (defmulti build-collection (fn [params & _] (keyword (params "type"))))
 (defmethod build-collection :talk-collection [{:strs [talk-collection]} id project]
-  (let [subjects (-> (str "http://localhost:3000/projects/" 
-                          project "/talk/collections/" 
-                          talk-collection)
+  (let [subjects (-> (str (ouroboros-url project) "/talk/collections/" talk-collection)
                      (client/get {:as :json})
                      :body
                      :subjects)
@@ -71,12 +73,12 @@
         join-table (str table "-collections")
         join-table-fk (str (str/replace project "_" "-") "-member_id")
         results (select join-table
-                (fields [(keyword (str table ".zooniverse-id")) :uid] 
-                        (keyword (str table ".ra"))
-                        (keyword (str table ".dec")) 
-                        (keyword (str table ".sdss-photo-id")) 
-                        (keyword (str table ".attributes")))
-                (where {:collection_id (Integer. id)})
-                (join table (= (keyword (str table ".id")) 
-                               (keyword (str join-table "." join-table-fk)))))]
+                        (fields [(keyword (str table ".zooniverse-id")) :uid] 
+                                (keyword (str table ".ra"))
+                                (keyword (str table ".dec")) 
+                                (keyword (str table ".sdss-photo-id")) 
+                                (keyword (str table ".attributes")))
+                        (where {:collection_id (Integer. id)})
+                        (join table (= (keyword (str table ".id")) 
+                                       (keyword (str join-table "." join-table-fk)))))]
     (map #(dissoc (merge % (:attributes %)) :attributes) results)))
