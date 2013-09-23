@@ -19,7 +19,7 @@
 
 (defn postgres-url-to-korma
   [url]
-  (let [url (java.net.URI url)
+  (let [url (java.net.URI. url)
         [username password] (str/split (.getUserInfo url) #":")]
     {:db (.getPath url)
      :user username

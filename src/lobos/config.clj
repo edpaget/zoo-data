@@ -8,4 +8,6 @@
    :password ""
    :subname "//localhost:5432/zoo-data"})
 
-(open-global db)
+(defn connect-lobos
+  []
+  (open-global (or (get (System/getenv) "HEROKU_POSTGRESQL_BLACK_URL") db)))
