@@ -60,7 +60,7 @@
                                     (resp-ok (c/find-by-user-and-project user-id project-name)))
                                (GET "/:id" [id] 
                                     (resp-ok (c/find-by-id id)))
-                               (POST "/" [body]
+                               (POST "/" {body :body}
                                      (resp-created (c/create user-id project-name body)))
                                (PUT "/:id" [id body] 
                                     (resp-ok (c/update-col id body project-name)))

@@ -5,28 +5,21 @@
             [clj-http.client :as client]
             [clojure.string :as str]))
 
-(defn- project-to-table
-  [project]
-  (str (str/replace project "_" "-") "-members"))
-
 (defn- ouroboros-url
   [project]
-  (str (get (System/getenv) "ZOONIVERSE_API") "/projects/" project))
+  (str (get (System/getenv) "ZOONIVERSE_URL") "/projects/" project))
 
 (defmulti build-collection (fn [params & _] (keyword (params "type"))))
 (defmethod build-collection :talk-collection [{:strs [talk-collection]} id project]
+  (println (ouroboros-url project))
   (let [subjects (-> (str (ouroboros-url project) "/talk/collections/" talk-collection)
                      (client/get {:as :json})
                      :body
                      :subjects)
-        zoo-ids (map :zooniverse_id subjects)
-        table (project-to-table project)
-        members (map :id (select table
-                                 (fields :id)
-                                 (where (in :zooniverse-id zoo-ids))))]
-    (insert (str table "-collections")
-            (values (map #(array-map :collection_id id :galaxy-zoo-starburst-member_id %) 
-                         members))))) 
+        zoo-ids (map :zooniverse_id subjects)]
+    (insert (str project "_subjects_collections")
+            (values (map #(array-map :collection_id id :subject_id %) zoo-ids))))) 
+
 (defentity collections
   (pk :id)
   (table :collections)
@@ -44,7 +37,7 @@
 
 (defn update-col
   [id params project]
-  (delete (str (project-to-table project) "-collections")
+  (delete (str project "_subjects_collections")
           (where {:collection_id (Integer. id)}))
   (build-collection params (Integer. id) project)
   (update collections
@@ -69,16 +62,10 @@
 
 (defn get-data
   [id project]
-  (let [table (project-to-table project)
-        join-table (str table "-collections")
-        join-table-fk (str (str/replace project "_" "-") "-member_id")
-        results (select join-table
-                        (fields [(keyword (str table ".zooniverse-id")) :uid] 
-                                (keyword (str table ".ra"))
-                                (keyword (str table ".dec")) 
-                                (keyword (str table ".sdss-photo-id")) 
-                                (keyword (str table ".attributes")))
-                        (where {:collection_id (Integer. id)})
-                        (join table (= (keyword (str table ".id")) 
-                                       (keyword (str join-table "." join-table-fk)))))]
-    (map #(dissoc (merge % (:attributes %)) :attributes) results)))
+  (let [table (str project "_subjects")
+        join-table (str table "_collections")]
+    (select join-table
+            (fields (keyword (str table ".*")))
+            (where {:collection_id (Integer. id)})
+            (join table (= (keyword (str table ".zooniverse_id")) 
+                           (keyword (str join-table ".subject_id")))))))
