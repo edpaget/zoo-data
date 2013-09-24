@@ -11,6 +11,7 @@
                                              context]]
             [compojure.route :as route]
             [zoo-data.model.collection :as c]
+            [zoo-data.model.project-table :as pt]
             [zoo-data.web.project :as p]))
 
 (defn- resp
@@ -47,26 +48,36 @@
                   "Access-Control-Allow-Headers" "content-type"
                   "Access-Control-Allow-Methods" "GET, OPTIONS, PUT, POST, DELETE"}))))
 
+(defn wrap-project
+  [handler]
+  (fn [req]
+    (let [req (update-in req [:params :project] pt/by-name)]
+      (handler req))))
+
+(defroutes collections-routes
+  (cmpj/routes
+    (context "/collection" [user-id project]
+             (GET "/" [] 
+                  (resp-ok (c/find-by-user-and-project user-id project)))
+             (GET "/:id" [id] 
+                  (resp-ok (c/find-by-id id)))
+             (POST "/" {body :body}
+                   (resp-created (c/create user-id project body)))
+             (PUT "/:id" [id body] 
+                  (resp-ok (c/update-col id body project)))
+             (DELETE "/:id" [id]
+                     (resp-no-content (c/delete-col id)))
+             (GET "/:id/data" [id] (resp-ok (c/get-data id project)))
+             (POST "/:id/bless" [id] (resp-ok (c/bless id))))))
+ 
 (defroutes app-routes
   (cmpj/routes
     (OPTIONS "/*" [] (resp-ok ""))
     (context "/project" []
-             (GET "/:name" [name] (resp-ok (p/find-by-name name)))
+             (GET "/:project" [project] (resp-ok (p/find-by-name project)))
              (POST "/" {body :body} (resp 202 (p/create-project body))))
-    (context "/user/:user-id" [user-id] 
-             (context "/project/:project-name" [project-name]
-                      (context "/collection" []
-                               (GET "/" [] 
-                                    (resp-ok (c/find-by-user-and-project user-id project-name)))
-                               (GET "/:id" [id] 
-                                    (resp-ok (c/find-by-id id)))
-                               (POST "/" {body :body}
-                                     (resp-created (c/create user-id project-name body)))
-                               (PUT "/:id" [id body] 
-                                    (resp-ok (c/update-col id body project-name)))
-                               (DELETE "/:id" [id]
-                                       (resp-no-content (c/delete-col id)))
-                               (GET "/:id/data" [id] (resp-ok (c/get-data id project-name)))))))
+    (context "/user/:user-id" [] 
+             (context "/project/:project" [] (wrap-project collections-routes))))
   (route/not-found "Not Found"))
 
 (defn routes

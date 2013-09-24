@@ -51,7 +51,7 @@
   (when data
     (doseq [datum data] 
       (insert table
-            (values (w/keywordize-keys datum))))))
+              (values (w/keywordize-keys datum))))))
 
 (defn- create-reference
   [table field]
@@ -62,11 +62,16 @@
   (with-conn*
     (sql/create-table 
       (str name "_subjects_collections")
-      [:id "INTEGER" "NOT NULL" "PRIMARY KEY"]
+      [:id "INTEGER" "NOT NULL" "PRIMARY KEY" "AUTO_INCREMENT"]
       [:collection_id "INTEGER" (create-reference "collections" "id")]
       [:subject_id "VARCHAR(255)" (create-reference data_table primary_index)])))
 
 (defn by-name
+  [name]
+  (first (select projects
+                 (where {:name name}))))
+
+(defn data-by-name
   [{:keys [primary-index data-table classification-table]}]
   (let [query (select* data-table)]
     (if classification-table

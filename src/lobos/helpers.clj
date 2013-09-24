@@ -1,5 +1,5 @@
 (ns lobos.helpers
-  (:refer-clojure :exlcude [bigint boolean char double float time])
+  (:refer-clojure :exclude [bigint boolean char double float time])
   (:use (lobos schema)))
 
 (defn surrogate-key 

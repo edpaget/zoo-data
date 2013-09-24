@@ -1,6 +1,8 @@
 (ns zoo-data.model.collection
   (:use korma.core
-        pghstore-clj.core)
+        pghstore-clj.core
+        [clojure.walk :only [keywordize-keys]]
+        [clojure.set :only [rename-keys]])
   (:require [zoo-data.model.database :as db]
             [clj-http.client :as client]
             [clojure.string :as str]))
@@ -9,31 +11,56 @@
   [project]
   (str (get (System/getenv) "ZOONIVERSE_URL") "/projects/" project))
 
+(defn- get-primary-key
+  [project]
+  (fn [subject] 
+    (get subject (keyword (:primary-index project)))))
+
+(defn- create-join
+  [project id ids]
+  (insert (str (:data-table project) "_collections")
+          (values (map #(array-map :collection_id id :subject_id %) ids))))
+
 (defmulti build-collection (fn [params & _] (keyword (params "type"))))
+
 (defmethod build-collection :talk-collection [{:strs [talk-collection]} id project]
-  (println (ouroboros-url project))
-  (let [subjects (-> (str (ouroboros-url project) "/talk/collections/" talk-collection)
+  (let [subjects (-> (:name project)
+                     ouroboros-url
+                     (str "/talk/collections/" talk-collection)
                      (client/get {:as :json})
                      :body
                      :subjects)
-        zoo-ids (map :zooniverse_id subjects)]
-    (insert (str project "_subjects_collections")
-            (values (map #(array-map :collection_id id :subject_id %) zoo-ids))))) 
+        ids (map (get-primary-key project) subjects)]
+    (create-join project id ids)))
+
+(defmethod build-collection :query [params id project]
+  (let [params (keywordize-keys (dissoc params "type"))
+        subjects (select (:data-table project)
+                         (where params))
+        ids (map (get-primary-key project) subjects)]
+    (create-join project id ids)))
 
 (defentity collections
   (pk :id)
   (table :collections)
   (prepare #(update-in % [:params] to-hstore))
-  (entity-fields :user :project :params))
+  (entity-fields :user :project_id :project :params :blessed))
 
 (defn create
   [user project params]
   (let [col (insert collections
                     (values {:user user 
-                             :project project 
+                             :project (:name project) 
+                             :project_id (:id project)
                              :params params}))]
     (build-collection params (:id col) project)
     col))
+
+(defn bless
+  [id]
+  (update collections
+          (set-fields {:blessed true})
+          (where {:id (Integer. id)})))
 
 (defn update-col
   [id params project]
@@ -52,8 +79,9 @@
 (defn find-by-user-and-project
   [user project]
   (select collections
-          (where {:user user
-                  :project project})))
+          (where (or {:user user
+                      :project (:name project)}
+                     {:blessed true}))))
 
 (defn find-by-id
   [id]
@@ -62,10 +90,11 @@
 
 (defn get-data
   [id project]
-  (let [table (str project "_subjects")
-        join-table (str table "_collections")]
-    (select join-table
-            (fields (keyword (str table ".*")))
-            (where {:collection_id (Integer. id)})
-            (join table (= (keyword (str table ".zooniverse_id")) 
-                           (keyword (str join-table ".subject_id")))))))
+  (let [table (str (:data-table project))
+        join-table (str table "_collections")
+        results (select join-table
+                        (fields (str "\"" table "\".*"))
+                        (where {:collection_id (Integer. id)})
+                        (join table (= (keyword (str table ".zooniverse_id")) 
+                                       (keyword (str join-table ".subject_id")))))]
+    (map #(rename-keys % {(keyword (:primary-index project)) :uid}) results)))

@@ -6,6 +6,7 @@
             [clojure.test :as test]
             [clojure.tools.namespace.repl :refer (refresh refresh-all)]
             [lobos.core :refer [migrate rollback]]
+            [lobos.config :refer [connect-lobos]]
             [zoo-data.system :as system]))
 
 (def system nil)
