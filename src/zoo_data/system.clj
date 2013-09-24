@@ -31,7 +31,7 @@
   "Returns configuration for a new instance of the application"
   [& [port]]
   (let [redis-url (get (System/getenv) "REDISTOGO")
-        postgres-url (get (System/getenv) "HEROKU_POSTGRESQL_BLACK_URL")]
+        postgres-url (get (System/getenv) "DATABASE_URL")]
     {:postgres (if postgres-url
                  (postgres-url-to-korma postgres-url)
                  default-postgres)
