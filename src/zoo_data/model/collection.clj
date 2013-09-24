@@ -43,7 +43,7 @@
 (defentity collections
   (pk :id)
   (table :collections)
-  (prepare #(update-in % [:params] to-hstore))
+  (prepare #(if (:params %) (update-in % [:params] to-hstore) %))
   (entity-fields :user :project_id :project :params :blessed))
 
 (defn create
@@ -58,6 +58,7 @@
 
 (defn bless
   [id]
+  (println id)
   (update collections
           (set-fields {:blessed true})
           (where {:id (Integer. id)})))
