@@ -41,3 +41,13 @@
         (alter :drop
                (table :collections
                       (column :blessed)))))
+
+(defmigration add-name-to-collections-table
+  (up []
+      (alter :add
+             (table :collections
+                    (varchar :name 255))))
+  (down [] 
+        (alter :drop
+               (table :collections
+                      (column :name)))))

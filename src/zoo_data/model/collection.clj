@@ -47,11 +47,12 @@
   (entity-fields :user :project_id :project :params :blessed))
 
 (defn create
-  [user project params]
+  [user project {:strs [name params]}]
   (let [col (insert collections
                     (values {:user user 
                              :project (:name project) 
                              :project_id (:id project)
+                             :name name
                              :params params}))]
     (build-collection params (:id col) project)
     col))
@@ -64,13 +65,17 @@
           (where {:id (Integer. id)})))
 
 (defn update-col
-  [id params project]
-  (delete (str project "_subjects_collections")
+  [id {:strs [name params]} project]
+  (delete (str (:data-table project) "_collections")
           (where {:collection_id (Integer. id)}))
-  (build-collection params (Integer. id) project)
-  (update collections
-          (set-fields {:params params})
-          (where {:id (Integer. id)})))
+  (let [collection (first (select collections (where {:id (Integer. id)})))
+        name (or name (:name collection))
+        params (or params (into {} (:params collection)))]
+    (build-collection params (Integer. id) project)
+    (update collections
+            (set-fields {:params params
+                         :name name})
+            (where {:id (Integer. id)}))))
 
 (defn delete-col 
   [id]

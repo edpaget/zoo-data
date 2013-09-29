@@ -63,7 +63,7 @@
                   (resp-ok (c/find-by-id id)))
              (POST "/" {body :body}
                    (resp-created (c/create user-id project body)))
-             (PUT "/:id" [id body] 
+             (PUT "/:id" {{:keys [id]} :params body :body} 
                   (resp-ok (c/update-col id body project)))
              (DELETE "/:id" [id]
                      (resp-no-content (c/delete-col id)))
