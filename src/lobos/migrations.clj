@@ -3,7 +3,7 @@
   (:use (lobos [migration :only [defmigration]] core schema config helpers)))
 
 (defmigration add-projects-table
-  (up 
+  (up []
       (create
         (tbl :projects
              (varchar :name 255)
@@ -11,10 +11,10 @@
              (varchar :secondary-index 255)
              (varchar :data-table 255)
              (varchar :classification-table 255))))
-  (down  (drop (table :projects))))
+  (down [] (drop (table :projects))))
 
 (defmigration add-collections-table
-  (up  
+  (up [] 
       (create
         (tbl :collections
              (varchar :user 100)
@@ -22,32 +22,32 @@
              (column :params (data-type :hstore))
              (refer-to :projects)))
       (index :collections [:user :project]))
-  (down  (drop (table :collections))))
+  (down [] (drop (table :collections))))
 
 (defmigration add-auth-table
-  (up 
+  (up []
       (create
         (tbl :auth
              (varchar :auth-id 255)
              (varchar :api-key 255))))
-  (down  (drop (table :auth))))
+  (down [] (drop (table :auth))))
 
 (defmigration add-blessed-to-collections-table
-  (up 
+  (up []
       (alter :add
              (table :collections
                     (boolean :blessed))))
-  (down 
+  (down []
         (alter :drop
                (table :collections
                       (column :blessed)))))
 
 (defmigration add-name-to-collections-table
-  (up 
+  (up []
       (alter :add
              (table :collections
                     (varchar :name 255))))
-  (down  
+  (down [] 
         (alter :drop
                (table :collections
                       (column :name)))))

@@ -6,7 +6,7 @@
   {:classname "org.postgresql.Driver"
    :subprotocol "postgresql"
    :user "edward"
-   :password ""
+   :password "blah"
    :subname "//localhost:5432/zoo-data"})
 
 (defn url-to-connection-map

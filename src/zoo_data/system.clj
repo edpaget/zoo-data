@@ -7,7 +7,7 @@
 (def default-postgres 
   {:db "zoo-data"
    :user "edward"
-   :password ""
+   :password "blah"
    :host "localhost"
    :port "5432"})
 
