@@ -21,7 +21,7 @@
   [url]
   (let [url (java.net.URI. url)
         [username password] (str/split (.getUserInfo url) #":")]
-    {:db (.getPath url)
+    {:db (apply str (drop 1 (.getPath url)))
      :user username
      :password password
      :host (.getHost url)
