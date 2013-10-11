@@ -4,19 +4,6 @@
             [zoo-data.model.database :as db]
             [clojure.string :as str]))
 
-(def default-postgres 
-  {:db "zoo-data"
-   :user "edward"
-   :password "blah"
-   :host "localhost"
-   :port "5432"})
-
-(def default-redis
-  {:spec {:host "127.0.0.01"
-          :port 6379
-          :db 2}
-   :pool {}})
-
 (defn postgres-url-to-korma
   [url]
   (let [url (java.net.URI. url)
@@ -30,14 +17,10 @@
 (defn system
   "Returns configuration for a new instance of the application"
   [& [port]]
-  (let [redis-url (get (System/getenv) "REDISTOGO")
-        postgres-url (get (System/getenv) "DATABASE_URL")]
-    {:postgres (if postgres-url
-                 (postgres-url-to-korma postgres-url)
-                 default-postgres)
-     :redis (if redis-url
-              {:pool {} :spec {:url redis-url}}
-              default-redis)
+  (let [redis-url (or (get (System/getenv) "REDISTOGO")
+                      (get (System/getenv) "REDIS"))]
+    {:postgres (get (System/getenv) "DATABASE_URL") 
+     :redis {:pool {} :spec {:url redis-url}}
      :handler (r/routes)
      :port (or port 3002)}))
 
