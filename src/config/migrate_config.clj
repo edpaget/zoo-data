@@ -1,26 +1,33 @@
 (ns config.migrate-config
-  (:require [taoensso.carmine :as car]))
+  (:require [paneer.core :as p]
+            [paneer.db :as db]
+            [clojure.java.jdbc :as j]))
 
-(defn redis-conn
+(defn- connect-paneer
+  [db]
+  (let [db (or db (get (System/getenv) "DATABASE_URL"))]
+    (db/set-default-db! db)))
+
+(defn- maybe-create-schema-table
   []
-  {:spec {:url (get (System/getenv) "REDIS")} 
-   :poll {}})
+  (p/create-if-not-exists
+    (p/table :schema_version
+           (p/integer :version :not-null)
+           (p/timestamp :not-null :default "now()"))))
 
 (defn current-db
   []
-  (or (car/wcar (redis-conn)
-                (car/get "drift:db-version"))
-      0))
+  (or (:version (:first (j/query @db/__default 
+                                 ["SELECT * FROM \"schema_version\" ORDER BY \"created_at\" DESC LIMIT 1"])))))
 
 (defn update-db
   [version]
-  (car/wcar (redis-conn)
-            (car/set "drift:db-version" version)))
+  (j/insert! @db/__default "schema_version" {:version version}))
 
 (defn migrate-config
   []
   {:directory "/src/migrations"
-   :ns-content "\n (:use migrate-helpers.helper)
-                \n (:require [clojure.java.jdbc :as sql])"
+   :ns-content "\n (:require [paneer.core :as p])"
    :current-version current-db
+   :init connect-paneer
    :update-version update-db})
