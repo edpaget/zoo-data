@@ -11,7 +11,7 @@
                  [org.postgresql/postgresql "9.2-1002-jdbc4"]
                  [com.taoensso/carmine "2.2.0"] 
                  [ring/ring-devel "1.2.0-RC1"]
-                 [org.clojure/java.jdbc "0.3.0-alpha4"]
+                 [org.clojure/java.jdbc "0.3.0-alpha5"]
                  [ring/ring-jetty-adapter "1.2.0-RC1"]
                  [paneer "0.1.0-SNAPSHOT"]]
   :profiles
