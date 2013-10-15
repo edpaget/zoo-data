@@ -19,7 +19,10 @@
   []
   (connect-paneer)
   (maybe-create-schema-table)
-  (or (:version (:first (j/query @db/__default 
+  (println (:version (first (j/query @db/__default 
+                                      ["SELECT * FROM \"schema_version\" ORDER BY \"created_at\" DESC LIMIT 1"]))))
+
+  (or (:version (first (j/query @db/__default 
                                  ["SELECT * FROM \"schema_version\" ORDER BY \"created_at\" DESC LIMIT 1"]))) 0))
 
 (defn update-db
@@ -29,8 +32,7 @@
 (defn migrate-config
   []
   {:directory "/src/migrations"
-   :ns-content "\n (:refer-clojure :exclude [bigint boolean char double float time drop]) 
-                   (:use paneer.core)"
+   :ns-content "\n  (:refer-clojure :exclude [bigint boolean char double float time drop]) \n  (:use paneer.core)"
    :current-version current-db
    :init connect-paneer
    :update-version update-db})

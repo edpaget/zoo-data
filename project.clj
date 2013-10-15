@@ -13,7 +13,7 @@
                  [ring/ring-devel "1.2.0-RC1"]
                  [org.clojure/java.jdbc "0.3.0-alpha5"]
                  [ring/ring-jetty-adapter "1.2.0-RC1"]
-                 [paneer "0.1.0-SNAPSHOT"]]
+                 [paneer "0.1.1-SNAPSHOT"]]
   :profiles
   {:dev {:source-paths ["dev"]
          :dependencies [[ring-mock "0.1.5"]
