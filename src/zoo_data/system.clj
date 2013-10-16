@@ -19,7 +19,7 @@
   [& [port]]
   (let [redis-url (or (get (System/getenv) "REDISTOGO")
                       (get (System/getenv) "REDIS"))]
-    {:postgres (get (System/getenv) "DATABASE_URL") 
+    {:postgres (postgres-url-to-korma (get (System/getenv) "DATABASE_URL")) 
      :redis {:pool {} :spec {:url redis-url}}
      :handler (r/routes)
      :port (or port 3002)}))

@@ -1,7 +1,9 @@
 (ns zoo-data.model.database
-  (:use korma.db)
+  (:use korma.db
+        korma.core)
   (:require [taoensso.carmine :as car]))
 
+;; Setup Database
 (def redis-connection nil)
 (def pg-connection nil)
 
@@ -25,3 +27,20 @@
   [post-conn red-conn]
   (alter-var-root #'redis-connection (constantly red-conn)) 
   (alter-var-root #'pg-connection (constantly (defdb pg (postgres post-conn)))))
+
+;; A couple nice functions to have around 
+(defn select-by-id
+  [ent id]
+  (select ent
+          (where {:id id})))
+
+(defn update-by-id
+  [ent id record]
+  (update ent
+          (set-fields records)
+          (where {:id id})))
+
+(defn delete-by-id
+  [ent id]
+  (delete ent
+          (where {:id id})))
