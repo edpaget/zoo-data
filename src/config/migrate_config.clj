@@ -32,7 +32,7 @@
 (defn migrate-config
   []
   {:directory "/src/migrations"
-   :ns-content "\n  (:refer-clojure :exclude [bigint boolean char double float time drop]) \n  (:use paneer.core)"
+   :ns-content "\n  (:refer-clojure :exclude [alter bigint boolean char double float time drop]) \n  (:use paneer.core)"
    :current-version current-db
    :init connect-paneer
    :update-version update-db})
