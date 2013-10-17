@@ -11,6 +11,7 @@
                  [crypto-random "1.1.0"]
                  [org.postgresql/postgresql "9.2-1002-jdbc4"]
                  [com.taoensso/carmine "2.2.0"] 
+                 [bultitude "0.2.2"]
                  [ring/ring-devel "1.2.0-RC1"]
                  [org.clojure/java.jdbc "0.3.0-alpha5"]
                  [ring/ring-jetty-adapter "1.2.0-RC1"]
