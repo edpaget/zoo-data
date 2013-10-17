@@ -2,16 +2,12 @@
   (:use korma.core)
   (:require [clojure.java.jdbc :as sql]
             [clojure.walk :as w]
-            [zoo-data.model.database :as db]))
-
-(defentity projects
-  (pk :id)
-  (table :projects)
-  (entity-fields :name :primary-index :secondary-index :data-table :classification-table))
+            [zoo-data.model.database :as db]
+            [zoo-data.model.projects :as p]))
 
 (defn create-project
   [{:strs [name primary_index secondary_index data_table classification_table]}]
-  (insert projects
+  (insert p/projects
           (values {:name name
                    :primary-index primary_index
                    :secondary-index secondary_index
@@ -68,7 +64,7 @@
 
 (defn by-name
   [name]
-  (first (select projects
+  (first (select p/projects
                  (where {:name name}))))
 
 (defn data-by-name

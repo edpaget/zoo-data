@@ -1,5 +1,5 @@
 (ns migrations.20131015160553-add-users-table
-  (:refer-clojure :exclude [bigint boolean char double float time drop]) 
+  (:refer-clojure :exclude [bigint boolean char double float time drop alter]) 
   (:use paneer.core))
 
 (defn up

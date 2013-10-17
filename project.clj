@@ -8,6 +8,7 @@
                  [korma "0.3.0-RC5"]
                  [clj-http "0.7.6"]
                  [drift "1.5.2"]
+                 [crypto-random "1.1.0"]
                  [org.postgresql/postgresql "9.2-1002-jdbc4"]
                  [com.taoensso/carmine "2.2.0"] 
                  [ring/ring-devel "1.2.0-RC1"]

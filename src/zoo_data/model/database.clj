@@ -37,10 +37,15 @@
 (defn update-by-id
   [ent id record]
   (update ent
-          (set-fields records)
+          (set-fields record)
           (where {:id id})))
 
 (defn delete-by-id
   [ent id]
   (delete ent
           (where {:id id})))
+
+(defn insert-record
+  [ent record]
+  (insert ent
+          (fields record)))

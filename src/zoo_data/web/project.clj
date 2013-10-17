@@ -1,27 +1,33 @@
 (ns zoo-data.web.project
-  (:require [zoo-data.model.project-table :as pt]))
+  (:use compojure.core
+        zoo-data.web.resp-util)
+  (:require [zoo-data.model.projects :as p]))
 
+(defn wrap-project
+  [handler]
+  (fn [req]
+    (let [req (update-in req [:params :project] p/by-name)]
+      (handler req))))
+ 
 (defn find-by-name
   [name]
-  (pt/by-name name))
+  (p/by-name name))
+
+(defn all-projects
+  []
+  (p/all))
 
 (defn- create-project-from-json
-  [{:strs [project data classifications]}] 
-  (pt/create-project project)
-  (pt/create-table project (get project "data_table") data)
-  (pt/create-collection-join project)
-  (when classifications
-    (pt/create-table project (get project "classifications_table") classifications)))
+  [{:strs [id name primary-index secondary-index display-name]}] 
+  (p/create {:id id
+             :name name
+             :primary_index primary-index
+             :secondary_index secondary-index
+             :display_name display-name}))
 
-(defn create-project
-  [body]
-  (create-project-from-json body)
-  " ")
-
-(comment (defn update-data
-  [{:keys [content-type]} {:strs [data]} & [body]]
-  (cond
-    (= content-type "application/json") (if (vector? data) 
-                                          (doseq [datum data] (pt/update-data datum))
-                                          (pt/update-data datum))
-    (= content-type "text/csv") (doseq [datum data] (pt/udpate-data dataum)))))
+(defroutes project-routes
+  (routes
+    (context "/projects" []
+             (GET "/" [] (resp-ok (all-projects)))
+             (POST "/" {body :body} (resp-created (create-project-from-json body)))
+             (GET "/:name" [name] (resp-ok (find-by-name name))))))

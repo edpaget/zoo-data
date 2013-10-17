@@ -1,7 +1,8 @@
 (ns zoo-data.web.routes
   (:use ring.middleware.json
         ring.middleware.stacktrace
-        [clojure.string :only [upper-case]])
+        [clojure.string :only [upper-case]]
+        zoo-data.web.resp-util)
   (:require [compojure.core :as cmpj :refer [OPTIONS 
                                              GET 
                                              POST 
@@ -14,29 +15,6 @@
             [zoo-data.model.project-table :as pt]
             [zoo-data.web.project :as p]))
 
-(defn- resp
-  [status body]
-  {:status status
-   :headers {"Content-Type" "application/json"}
-   :body body})
-
-(defn- resp-ok
-  [body]
-  {:status 200
-   :headers {"Content-Type" "application/json"}
-   :body body})
-
-(defn- resp-created
-  [body]
-  {:status 201
-   :headers {"Content-Type" "application/json"}
-   :body body})
-
-(defn- resp-no-content
-  [& args]
-  {:status 204
-   :body ""})
-
 (defn wrap-cors
   [handler]
   (fn [req] 
@@ -47,12 +25,6 @@
                  {"Access-Control-Allow-Origin" "*"
                   "Access-Control-Allow-Headers" "content-type"
                   "Access-Control-Allow-Methods" "GET, OPTIONS, PUT, POST, DELETE"}))))
-
-(defn wrap-project
-  [handler]
-  (fn [req]
-    (let [req (update-in req [:params :project] pt/by-name)]
-      (handler req))))
 
 (defroutes collections-routes
   (cmpj/routes
@@ -73,11 +45,9 @@
 (defroutes app-routes
   (cmpj/routes
     (OPTIONS "/*" [] (resp-ok ""))
-    (context "/project" []
-             (GET "/:project" [project] (resp-ok (p/find-by-name project)))
-             (POST "/" {body :body} (resp 202 (p/create-project body))))
+    p/project-routes
     (context "/user/:user-id" [] 
-             (context "/project/:project" [] (wrap-project collections-routes))))
+             (context "/project/:project" [] (p/wrap-project collections-routes))))
   (route/not-found "Not Found"))
 
 (defn routes
