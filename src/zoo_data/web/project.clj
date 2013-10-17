@@ -18,12 +18,12 @@
   (p/all))
 
 (defn- create-project-from-json
-  [{:strs [id name primary-index secondary-index display-name]}] 
+  [{:strs [id name primary-index secondary-index display_name]}] 
   (p/create {:id id
              :name name
              :primary_index primary-index
              :secondary_index secondary-index
-             :display_name display-name}))
+             :display_name display_name}))
 
 (defroutes project-routes
   (routes

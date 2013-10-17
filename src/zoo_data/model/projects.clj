@@ -7,7 +7,7 @@
 (defentity projects
   (pk :id)
   (table :projects)
-  (entity-fields :name :primary_index :secondary_index))
+  (entity-fields :name :display_name :primary_index :secondary_index))
 
 (defn create
   [record]

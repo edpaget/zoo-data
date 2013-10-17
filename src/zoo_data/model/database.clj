@@ -48,4 +48,4 @@
 (defn insert-record
   [ent record]
   (insert ent
-          (fields record)))
+          (values record)))
