@@ -12,7 +12,6 @@
                                              context]]
             [compojure.route :as route]
             [zoo-data.model.collection :as c]
-            [zoo-data.model.project-table :as pt]
             [zoo-data.web.project :as p]))
 
 (defn wrap-cors
