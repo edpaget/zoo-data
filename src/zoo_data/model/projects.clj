@@ -2,24 +2,33 @@
   (:use korma.core)
   (:require [zoo-data.model.database :as db]
             [paneer.core :as p]
-            paneer.korma))
+            [paneer.korma :refer [exec-korma]]))
 
 (defentity projects
   (pk :id)
   (table :projects)
-  (entity-fields :name :display_name :primary_index :secondary_index))
+  (entity-fields :name :display_name :secondary_index))
 
 (defn create
   [record]
-  (p/create
-    (table (str (:name record) "_subjects")
-           (p/varchar (:primary_index record) 255 :primary-key)))
-  (p/create
-    (table (str (:name record) "_classifications")
-           (p/serial :id :primary-key)))
-  (p/create
-    (table (str (:name record) "_denormalized_classifications")
-           (p/varchar (:primary_index record) 255 :primary-key)))
+  (exec-korma
+    (p/create
+      (table (str (:name record) "_subjects")
+             (p/varchar :id 24 :primary-key))))
+  (exec-korma 
+    (p/create
+      (table (str (:name record) "_classifications")
+             (p/serial :id :primary-key))))
+  (exec-korma 
+    (p/create
+      (table (str (:name record) "_denormalized_classifications")
+             (p/varchar :id 24 :primary-key))))
+  (exec-korma 
+    (p/create
+      (table (str name "_subjects_collections")
+             (p/serial :id "PRIMARY KEY")
+             (p/refer-to :collections "integer")
+             (p/refer-to (str name "_subjects") "varchar(24)")))) 
   (db/insert-record projects record))
 
 (defn update-secondary-index

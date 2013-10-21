@@ -2,18 +2,8 @@
   (:use korma.core)
   (:require [clojure.walk :as w]
             [zoo-data.model.database :as db]
-            [zoo-data.model.projects :as p]
-            [paneer.core :as pa]
-            paneer.korma))
+            [zoo-data.model.projects :as p]))
 
-(defn create-collection-join
-  [{:strs [name primary_index]}]
-  (pa/create
-    (table (keyword (str name "_subjects_collections"))
-           (pa/serial :id "PRIMARY KEY")
-           (pa/refer-to :collections "integer")
-           (pa/refer-to (keyword (str name "_subjects")) "varchar(24)"))))
- 
 (defn- to-column
   [[name type]]
   (let [type (cond
@@ -49,10 +39,6 @@
 (defn update-subjects
   [project subjects]
   )
-
-(defn- create-reference
-  [table field]
-  (str "REFERENCES " table " (" field ") " "ON DELETE SET NULL"))
 
 (defn get-subjects 
   [{:keys [primary-index data-table classification-table]}]
