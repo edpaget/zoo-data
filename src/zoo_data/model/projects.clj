@@ -10,21 +10,21 @@
   (entity-fields :name :display_name :secondary_index))
 
 (defn create
-  [record]
+  [{:keys [name] :as record}]
   (exec-korma
-    (p/create
-      (table (str (:name record) "_subjects")
+    (p/create-if-not-exists
+      (table (str name "_subjects")
              (p/varchar :id 24 :primary-key))))
   (exec-korma 
-    (p/create
-      (table (str (:name record) "_classifications")
+    (p/create-if-not-exists
+      (table (str name "_classifications")
              (p/serial :id :primary-key))))
   (exec-korma 
-    (p/create
-      (table (str (:name record) "_denormalized_classifications")
+    (p/create-if-not-exists
+      (table (str name "_denormalized_classifications")
              (p/varchar :id 24 :primary-key))))
   (exec-korma 
-    (p/create
+    (p/create-if-not-exists
       (table (str name "_subjects_collections")
              (p/serial :id "PRIMARY KEY")
              (p/refer-to :collections "integer")

@@ -19,10 +19,9 @@
   (p/all))
 
 (defn- create-project-from-json
-  [{:strs [id name primary-index secondary-index display_name]}] 
+  [{:strs [id name secondary-index display_name]}] 
   (resp-created (p/create {:id id
                            :name name
-                           :primary_index primary-index
                            :secondary_index secondary-index
                            :display_name display_name})))
 

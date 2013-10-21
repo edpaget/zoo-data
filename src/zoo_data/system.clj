@@ -21,7 +21,8 @@
                       (get (System/getenv) "REDIS"))]
     {:postgres (postgres-url-to-korma (get (System/getenv) "DATABASE_URL")) 
      :redis {:pool {} :spec {:url redis-url}}
-     :handler (r/routes)
+     :handler r/routes
+     :zooniverse_api "http://localhost:3000"
      :port (or port 3002)}))
 
 (defn start
@@ -29,7 +30,7 @@
   [system]
   (let [database (db/create! (:postgres system)
                              (:redis system))
-        server (s/create (:handler system)
+        server (s/create ((:handler system) system)
                          :port (:port system))]
     (into system {:server server :database database})))
 
