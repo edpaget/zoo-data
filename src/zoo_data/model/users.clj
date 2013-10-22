@@ -12,14 +12,29 @@
 
 (defn- gen-api-key
   []
-  (r/base64 100))
+  (r/base64 50))
+
+(defn admin-of?
+  [[id roles]]
+  (some #{"science" "admin"} roles))
+
+(defn add-projects
+  [{:keys [id]} roles]
+  (let [roles (map first (filter admin-of? roles))
+        records (map #(hash-map :project_id (name %) :user_id (name id)) roles)] 
+    (println records)
+    (insert :users_projects
+            (values records))))
 
 (defn create
   [record]
-  (db/insert-record users (assoc record :api_key (gen-api-key))))
+  (let [roles (:roles record)
+        record (dissoc record :roles)
+        db-entry  (db/insert-record users (assoc record :api_key (gen-api-key)))]
+    (when roles 
+      (add-projects db-entry roles))
+    db-entry))
 
-(defn add-projects
-  [{:keys [id]} projects]
-  (let [records (map #(assoc % :user_id id) projects)] 
-    (insert :users_projects
-            (values records))))
+(defn select-by-id
+  [id]
+  (db/select-by-id users id))

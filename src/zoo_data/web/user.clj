@@ -7,14 +7,17 @@
   [login-url username password]
   (-> (http/post login-url {:form-params {:username username
                                           :password password}
-                            :content-type :json})
+                            :content-type :json
+                            :as :json})
       :body))
 
 (defn login
-  [{:keys [zooniverse-api]} {:keys [username password]}]
+  [{:keys [zooniverse-api]} {:strs [username password]}]
   (let [login-url (str zooniverse-api "/login")
-        {:keys [id name projects api_key]} (send-login login-url username password)
-        user-record (u/create {:id id
-                               :name name
-                               :ouroboros_api_key api_key})]
-    (u/add-projects user-record projects)))
+        {:keys [id name talk api_key]} (send-login login-url username password)]
+    (if-let [user-record (first (u/select-by-id id))]
+      user-record
+      (u/create {:id id
+                 :name name
+                 :ouroboros_api_key api_key
+                 :roles (:roles talk)}))))

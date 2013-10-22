@@ -12,6 +12,7 @@
                                              context]]
             [compojure.route :as route]
             [zoo-data.model.collection :as c]
+            [zoo-data.web.user :as u]
             [zoo-data.web.project :as p]))
 
 (defn wrap-cors
@@ -24,6 +25,11 @@
                  {"Access-Control-Allow-Origin" "*"
                   "Access-Control-Allow-Headers" "content-type"
                   "Access-Control-Allow-Methods" "GET, OPTIONS, PUT, POST, DELETE"}))))
+
+(defn wrap-system
+  [handler system]
+  (fn [req]
+    (handler (update-in req [:params] assoc :system system))))
 
 (defroutes collections-routes
   (cmpj/routes
@@ -44,14 +50,16 @@
 (defroutes app-routes
   (cmpj/routes
     (OPTIONS "/*" [] (resp-ok ""))
+    (POST "/login" [system :as {body :body}] (resp-ok (u/login system body)))
     p/project-routes
     (context "/user/:user-id" [] 
              (context "/project/:project" [] (p/wrap-project collections-routes))))
   (route/not-found "Not Found"))
 
 (defn routes
-  []
-  (-> (wrap-json-response app-routes)
+  [system]
+  (-> (wrap-system app-routes system)
+      wrap-json-response 
       wrap-json-body
       wrap-cors
       wrap-stacktrace))
