@@ -15,6 +15,7 @@
                  [ring/ring-devel "1.2.0-RC1"]
                  [org.clojure/java.jdbc "0.3.0-alpha5"]
                  [ring/ring-jetty-adapter "1.2.0-RC1"]
+                 [org.clojure/data.codec "0.1.0"]
                  [paneer "0.1.3"]]
   :profiles
   {:dev {:source-paths ["dev"]

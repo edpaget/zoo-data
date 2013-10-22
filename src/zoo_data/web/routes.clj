@@ -46,14 +46,15 @@
                      (resp-no-content (c/delete-col id)))
              (GET "/:id/data" [id] (resp-ok (c/get-data id project)))
              (POST "/:id/bless" [id] (resp-ok (c/bless id))))))
- 
+
 (defroutes app-routes
   (cmpj/routes
     (OPTIONS "/*" [] (resp-ok ""))
     (POST "/login" [system :as {body :body}] (resp-ok (u/login system body)))
-    p/project-routes
-    (context "/user/:user-id" [] 
-             (context "/project/:project" [] (p/wrap-project collections-routes))))
+    (u/wrap-user
+      (cmpj/routes  
+        p/project-routes
+        (context "/project/:project" [] (p/wrap-project collections-routes))))) 
   (route/not-found "Not Found"))
 
 (defn routes

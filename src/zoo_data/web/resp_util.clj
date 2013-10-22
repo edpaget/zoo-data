@@ -20,6 +20,14 @@
   []
   (resp 204 ""))
 
+(defn resp-not-authorized
+  []
+  (resp 401 {"status" "Not Authorized"}))
+
+(defn resp-forbidden
+  []
+  (resp 403 {"status" "Forbidden"}))
+
 (defmacro resp-no-content
   [& action]
   `(do 
