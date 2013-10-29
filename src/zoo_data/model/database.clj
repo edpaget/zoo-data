@@ -60,6 +60,13 @@
   (let [record (dissoc record :updated_at)]
     (assoc record :updated_at (to-timestamp (now)))))
 
+(defn- column-to-hstore
+  [column]
+  (fn [record]
+    (println (vector column))
+    (println record)
+    (update-in record (vector column) to-hstore)))
+
 (declare project collection)
 
 (defentity user
@@ -74,7 +81,7 @@
   (pk :id)
   (table :projects)
   (has-many collection)
-  (prepare updated-at)
+  (prepare (comp updated-at (column-to-hstore :subject_schema)))
   (many-to-many user :users_projects {:lfk :user_id :rfk :project_id})
   (entity-fields :name :display_name :secondary_index))
  
@@ -82,7 +89,6 @@
   (pk :id)
   (belongs-to user)
   (belongs-to project)
-  (prepare updated-at)
   (table :collections)
-  (prepare #(if (:params %) (update-in % [:params] to-hstore) %))
+  (prepare (comp updated-at (column-to-hstore :params)))
   (entity-fields :params :blessed))

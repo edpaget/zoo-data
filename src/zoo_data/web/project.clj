@@ -22,10 +22,11 @@
   (p/all))
 
 (defn- create-project-from-json
-  [{:strs [id name secondary-index display_name]}] 
+  [{:strs [id name secondary-index display_name subject_schema]}] 
   (resp-created (p/create {:id id
                            :name name
                            :secondary_index secondary-index
+                           :subject_schema subject_schema
                            :display_name display_name})))
 
 (defn- update-secondary-index
