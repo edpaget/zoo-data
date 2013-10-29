@@ -2,7 +2,7 @@
   (:use korma.core)
   (:require [clojure.walk :as w]
             [paneer.core :as pa]
-            [paneer.korma :as pk]
+            [paneer.db :as pd]
             [zoo-data.model.database :as db]
             [zoo-data.model.projects :as p]))
 
@@ -24,10 +24,10 @@
 
 (defn create-schema
   [project schema]
-  (pk/exec-korma* 
+  (pd/execute
     (reduce (fn [command [col-name col-type]]
               (pa/column command col-name col-type))
-            (pa/alter* (pa/table* (subject-table project)) :if-exists)
+            (pa/alter* (pa/table (subject-table project)) :if-exists)
             (map to-column schema))))
 
 (defn create-subject

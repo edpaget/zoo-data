@@ -1,30 +1,36 @@
 (ns zoo-data.model.projects
-  (:use korma.core)
   (:require [zoo-data.model.database :as db]
             [paneer.core :as p]
-            [paneer.korma :refer [exec-korma]]))
+            [korma.core :refer :all]))
 
 (defn create
   [{:keys [name] :as record}]
-  (exec-korma
-    (p/create-if-not-exists
-      (table (str name "_subjects")
-             (p/varchar :id 24 :primary-key))))
-  (exec-korma 
-    (p/create-if-not-exists
-      (table (str name "_classifications")
-             (p/serial :id :primary-key))))
-  (exec-korma 
-    (p/create-if-not-exists
-      (table (str name "_denormalized_classifications")
-             (p/varchar :id 24 :primary-key))))
-  (exec-korma 
-    (p/create-if-not-exists
-      (table (str name "_subjects_collections")
-             (p/serial :id "PRIMARY KEY")
-             (p/refer-to :collections "integer")
-             (p/refer-to (str name "_subjects") "varchar(24)")))) 
-  (db/insert-record db/project record))
+  (try (p/if-not-exists
+         (p/create-table (str name "_subjects")
+                         (p/varchar :id 24 :primary-key)))
+       (p/if-not-exists
+         (p/create-table (str name "_classifications")
+                         (p/serial :id :primary-key)
+                         (p/refer-to (str name "_subjects") "varchar(24)")))
+       (p/if-not-exists
+         (p/create-table (str name "_denormalized_classifications")
+                         (p/varchar :id 24 :primary-key)
+                         (p/refer-to (str name "_subjects") "varchar(24)")))
+       (p/if-not-exists
+         (p/create-table (str name "_subjects_collections")
+                         (p/serial :id "PRIMARY KEY")
+                         (p/refer-to :collections "integer")
+                         (p/refer-to (str name "_subjects") "varchar(24)"))) 
+       (db/insert-record db/project record)
+       (catch Exception e
+         (p/if-exists
+           (p/drop-table (str name "_subjects_collections")))   
+         (p/if-exists
+           (p/drop-table (str name "_classifications")))
+         (p/if-exists
+           (p/drop-table (str name "_denormalized_classifications")))
+         (p/if-exists
+           (p/drop-table (str name "_subjects"))))))
 
 (defn update-secondary-index
   [project new-index]

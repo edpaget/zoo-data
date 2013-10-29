@@ -6,11 +6,15 @@
    :headers {"Content-Type" "application/json"}
    :body body})
 
+(defn resp-not-found
+  []
+  (resp 404 {"status" "Not Found"}))
+ 
 (defn resp-ok
   [body]
   (if body
     (resp 200 body)
-    (resp 404 {"status" "Not Found"})))
+    (resp-not-found)))
 
 (defn resp-created
   [body]

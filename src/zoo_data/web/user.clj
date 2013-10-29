@@ -16,13 +16,15 @@
 (defn login
   [{:keys [zooniverse-api]} {:strs [username password]}]
   (let [login-url (str zooniverse-api "/login")
-        {:keys [id name talk api_key]} (send-login login-url username password)]
-    (if-let [user-record (u/select-by-id id)]
-      user-record
-      (u/create {:id id
-                 :name name
-                 :ouroboros_api_key api_key
-                 :roles (:roles talk)}))))
+        {:keys [success id name talk api_key]} (send-login login-url username password)]
+    (when success
+      (if-let [user-record (u/select-by-id id)]
+        (do (u/add-projects user-record (:roles talk)) 
+            (u/select-by-id id))
+        (u/create {:id id
+                   :name name
+                   :ouroboros_api_key api_key
+                   :roles (:roles talk)})))))
 
 (defn find-user
   [id api-key]

@@ -9,7 +9,9 @@
   [handler]
   (fn [req]
     (let [req (update-in req [:params :project] p/by-name)]
-      (handler req))))
+      (if (get-in req [:params :project]) 
+        (handler req)
+        (resp-not-found)))))
 
 (defn find-by-name
   [name]
@@ -30,20 +32,11 @@
   [project body]
   (resp-ok (p/update-secondary-index project (:secondary_index body))))
 
-(defn authed-to-create
-  [handler]
-  (fn [req]
-    (let [project-name (get-in req [:body "name"])
-          user-project-names (map :name (get-in req [:params :user :projects]))]
-      (if (some #{project-name} user-project-names)
-        (handler req)
-        (resp-forbidden)))))
-
 (defroutes project-routes
   (routes
     (context "/projects" []
              (GET "/" [] (resp-ok (all-projects)))
-             (authed-to-create (POST "/" {body :body} (create-project-from-json body)))
+             (POST "/" {body :body} (create-project-from-json body))
              (context "/:project" []
                       (wrap-project 
                         (routes 
@@ -54,8 +47,6 @@
                             (u/wrap-project-auth
                               (PATCH "/" [project :as {body :body}] 
                                      (update-secondary-index project body))
-                              (POST "/subjects/schema" [project :as {body :body}] 
-                                    (ps/create-schema project body))
                               (POST "/subjects" [project :as {body :body}]
                                     (ps/create-subjects project body))
                               (PUT "/subjects" [project :as {body :body}]

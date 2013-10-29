@@ -8,16 +8,22 @@
   []
   (r/base64 50))
 
-(defn admin-of?
+(defn- admin-of?
   [[id roles]]
   (some #{"science" "admin"} roles))
+
+(defn- project-exists?
+  [id]
+  (not (empty? (select db/project 
+                       (where {:id (name id)})))))
 
 (defn add-projects
   [{:keys [id]} roles]
   (let [roles (map first (filter admin-of? roles))
-        records (map #(hash-map :project_id (name %) :user_id (name id)) roles)] 
-    (insert :users_projects
-            (values records))))
+        roles (filter project-exists? roles)]
+    (if-not (empty? roles)
+      (insert :users_projects
+              (values (map #(hash-map :project_id (name %) :user_id (name id)) roles))))))
 
 (defn select-by-id
   [id]
