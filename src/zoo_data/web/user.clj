@@ -50,7 +50,7 @@
 (defn wrap-project-auth
   [handler]
   (fn [req]
-    (let [project-id (get-in req [:params :project])
+    (let [project-id (get-in req [:params :project :id])
           user-allowed-project-ids (map :id (get-in req [:params :user :projects]))]
       (if (some #{project-id} user-allowed-project-ids)
         (handler req)

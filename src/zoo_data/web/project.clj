@@ -44,10 +44,11 @@
                           (GET "/" [project] (resp-ok project))
                           (GET "/subjects" [project]
                                (ps/get-subjects project))
-                          (routes 
-                            (u/wrap-project-auth
+                          (u/wrap-project-auth
+                            (routes 
                               (PATCH "/" [project :as {body :body}] 
                                      (update-secondary-index project body))
+                              (DELETE "/" [project] (p/delete-project project))
                               (POST "/subjects" [project :as {body :body}]
                                     (ps/create-subjects project body))
                               (PUT "/subjects" [project :as {body :body}]

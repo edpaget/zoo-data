@@ -19,6 +19,7 @@
 (defn delete-project
   [{:keys [id name]}]
   (drop-project-tables name)
+  (delete :users_projects (where {:project_id id}))
   (db/delete-by-id db/project id))
 
 (defn create
