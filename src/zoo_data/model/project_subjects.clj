@@ -4,28 +4,9 @@
             [paneer.core :as pa]
             [zoo-data.model.database :as db]))
 
-(defn- to-column
-  [[name type]]
-  (let [type (cond
-               (= "float" type) "float"
-               (= "string" type) "varchar(255)"
-               (= "integer" type) "integer"
-               (= "hash" type) "hstore"
-               (= "boolean" type) "boolean"
-               (= "str_array" type) "text[]"
-               (= "int_array" type) "integer[]")]
-    [(keyword name) type]))
-
 (defn- subject-table
   [project]
   (str (:name project) "_subjects"))
-
-(defn create-schema
-  [command schema]
-  (reduce (fn [command [col-name col-type]]
-            (pa/column command col-name col-type))
-          command
-          (map to-column schema)))
 
 (defn create-subject
   [project subject]

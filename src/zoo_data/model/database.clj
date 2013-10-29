@@ -61,11 +61,9 @@
     (assoc record :updated_at (to-timestamp (now)))))
 
 (defn- column-to-hstore
-  [column]
+  [& columns]
   (fn [record]
-    (println (vector column))
-    (println record)
-    (update-in record (vector column) to-hstore)))
+    (reduce #(update-in %1 (vector %2) to-hstore) record columns)))
 
 (declare project collection)
 
@@ -81,9 +79,9 @@
   (pk :id)
   (table :projects)
   (has-many collection)
-  (prepare (comp updated-at (column-to-hstore :subject_schema)))
+  (prepare (comp updated-at (column-to-hstore :subject_schema :classification_schema)))
   (many-to-many user :users_projects {:lfk :user_id :rfk :project_id})
-  (entity-fields :name :display_name :secondary_index))
+  (entity-fields :name :display_name :secondary_index :subject_schema :classification_schema))
  
 (defentity collection
   (pk :id)
