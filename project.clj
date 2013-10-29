@@ -7,6 +7,7 @@
                  [com.benburkert/pghstore-clj "0.1.1"]
                  [korma "0.3.0-RC5"]
                  [clj-http "0.7.6"]
+                 [clj-time "0.6.0"]
                  [drift "1.5.2"]
                  [crypto-random "1.1.0"]
                  [org.postgresql/postgresql "9.2-1002-jdbc4"]
@@ -16,7 +17,7 @@
                  [org.clojure/java.jdbc "0.3.0-alpha5"]
                  [ring/ring-jetty-adapter "1.2.0-RC1"]
                  [org.clojure/data.codec "0.1.0"]
-                 [paneer "0.1.3"]]
+                 [paneer "0.2.0-SNAPSHOT"]]
   :profiles
   {:dev {:source-paths ["dev"]
          :dependencies [[ring-mock "0.1.5"]

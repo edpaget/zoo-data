@@ -1,38 +1,43 @@
 (ns config.migrate-config
-  (:require [paneer.core :as p]
-            [paneer.db :as db]
-            [clojure.java.jdbc :as j]))
+  (:refer-clojure :exclude [bigint boolean char double float])
+  (:require [paneer.core :refer :all]
+            [korma.db :refer :all]
+            [korma.core :refer [select order limit insert values]]
+            [zoo-data.system :refer [postgres-url-to-korma]]))
 
 (defn- connect-paneer
-  [& [db]]
-  (let [db (or db (get (System/getenv) "DATABASE_URL"))]
-    (db/set-default-db! db)))
+  [& args]
+  (-> (System/getenv) 
+      (get "DATABASE_URL")  
+      postgres-url-to-korma 
+      postgres 
+      create-db 
+      default-connection))
 
 (defn- maybe-create-schema-table
   []
-  (p/create-if-not-exists
-    (table :schema_version
-           (p/bigint :version :not-null)
-           (p/timestamp :created_at :not-null :default "now()"))))
+  (if-not-exists
+    (create-table :schema_version
+                  (bigint :version :not-null)
+                  (timestamp :created_at :not-null :default "now()"))))
 
 (defn current-db
   []
-  (connect-paneer)
   (maybe-create-schema-table)
-  (println (:version (first (j/query @db/__default 
-                                      ["SELECT * FROM \"schema_version\" ORDER BY \"created_at\" DESC LIMIT 1"]))))
-
-  (or (:version (first (j/query @db/__default 
-                                 ["SELECT * FROM \"schema_version\" ORDER BY \"created_at\" DESC LIMIT 1"]))) 0))
+  (or (:version (first (select :schema_version
+                               (order :created_at :desc)
+                               (limit 1))))
+      0))
 
 (defn update-db
   [version]
-  (j/insert! @db/__default "schema_version" {:version version}))
+  (insert :schema_version
+          (values {:version version})))
 
 (defn migrate-config
   []
   {:directory "/src/migrations"
-   :ns-content "\n  (:refer-clojure :exclude [alter bigint boolean char double float time drop]) \n  (:use paneer.core)"
+   :ns-content "\n  (:refer-clojure :exclude [bigint boolean char double float]) \n  (:require [paneer.core :refer :all])"
    :current-version current-db
    :init connect-paneer
    :update-version update-db})
