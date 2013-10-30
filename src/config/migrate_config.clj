@@ -1,7 +1,7 @@
 (ns config.migrate-config
   (:refer-clojure :exclude [bigint boolean char double float])
   (:require [paneer.core :refer :all]
-            [korma.db :refer :all]
+            [korma.db :refer :all :exclude [transaction]]
             [korma.core :refer [select order limit insert values]]
             [zoo-data.system :refer [postgres-url-to-korma]]))
 
