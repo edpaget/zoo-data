@@ -2,8 +2,7 @@
   (:use compojure.core
         zoo-data.web.resp-util)
   (:require [zoo-data.model.projects :as p]
-            [zoo-data.web.user :as u]
-            [zoo-data.model.project-subjects :as ps]))
+            [zoo-data.web.user :as u]))
 
 (defn wrap-project
   [handler]
@@ -44,19 +43,19 @@
                         (routes 
                           (GET "/" [project] (resp-ok project))
                           (GET "/subjects" [project]
-                               (ps/get-subjects project))
+                               (p/get-subjects project))
                           (u/wrap-project-auth
                             (routes 
                               (PATCH "/" [project :as {body :body}] 
                                      (update-secondary-index project body))
                               (DELETE "/" [project] (p/delete-project project))
                               (POST "/subjects" [project :as {body :body}]
-                                    (ps/create-subjects project body))
+                                    (p/create-subjects project body))
                               (PUT "/subjects" [project :as {body :body}]
-                                   (ps/update-subjects project body :replace))
+                                   (p/update-subjects project body :replace))
                               (PATCH "/subjects" [project :as {body :body}]
-                                     (ps/update-subjects project body))
+                                     (p/update-subjects project body))
                               (PUT "/subjects/:id" [project id :as {body :body}]
-                                   (ps/update-subject project id body :replace))
+                                   (p/update-subject project id body :replace))
                               (PATCH "/subjects/:id" [project id :as {body :body}]
-                                     (ps/update-subject project id body))))))))))
+                                     (p/update-subject project id body))))))))))
