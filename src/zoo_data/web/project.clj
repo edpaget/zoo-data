@@ -1,8 +1,9 @@
 (ns zoo-data.web.project
-  (:use compojure.core
-        zoo-data.web.resp-util)
   (:require [zoo-data.model.projects :as p]
-            [zoo-data.web.user :as u]))
+            [zoo-data.web.user :as u]
+            [compojure.core :refer :all]
+            [zoo-data.web.resp-util :refer :all]
+            [clojure-csv.core :refer [parse-csv]]))
 
 (defn wrap-project
   [handler]
@@ -29,9 +30,35 @@
                            :display_name display_name
                            :classification_schema classification_schema})))
 
+(defn read-csv-body
+  [csv-body]
+  (let [[headers & body] (parse-csv (slurp csv-body))] 
+    (map (fn [line] (zipmap headers line)) body)))
+
+(defn wrap-csv-body
+  [handler]
+  (fn [req]
+    (if (= "text/csv" (get-in req [:headers "content-type"]))
+      (handler (update-in req [:body] read-csv-body))
+      (handler req))))
+
 (defn- update-secondary-index
   [project body]
   (resp-ok (p/update-secondary-index project (:secondary_index body))))
+
+(defroutes subject-routes
+  (wrap-csv-body
+    (routes
+      (POST "/subjects" [project :as {body :body}]
+            (p/create-subjects project body))
+      (PUT "/subjects" [project :as {body :body}]
+           (p/update-subjects project body :replace))
+      (PATCH "/subjects" [project :as {body :body}]
+             (p/update-subjects project body))
+      (PUT "/subjects/:id" [project id :as {body :body}]
+           (p/update-subject project id body :replace))
+      (PATCH "/subjects/:id" [project id :as {body :body}]
+             (p/update-subject project id body)))))
 
 (defroutes project-routes
   (routes
@@ -49,13 +76,4 @@
                               (PATCH "/" [project :as {body :body}] 
                                      (update-secondary-index project body))
                               (DELETE "/" [project] (p/delete-project project))
-                              (POST "/subjects" [project :as {body :body}]
-                                    (p/create-subjects project body))
-                              (PUT "/subjects" [project :as {body :body}]
-                                   (p/update-subjects project body :replace))
-                              (PATCH "/subjects" [project :as {body :body}]
-                                     (p/update-subjects project body))
-                              (PUT "/subjects/:id" [project id :as {body :body}]
-                                   (p/update-subject project id body :replace))
-                              (PATCH "/subjects/:id" [project id :as {body :body}]
-                                     (p/update-subject project id body))))))))))
+                              subject-routes)))))))) 

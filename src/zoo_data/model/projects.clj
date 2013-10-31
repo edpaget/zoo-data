@@ -6,7 +6,7 @@
 
 (defn- qualify-table
   [table]
-  (str "\"subject_classifications\".\"" table \"))
+  (str "subject_classifications." table))
 
 (defn- subject-table
   [project]
@@ -23,6 +23,20 @@
                (= "str_array" type) "text[]"
                (= "int_array" type) "integer[]")]
     [(keyword name) type]))
+
+(defn- cast-row
+  [type]
+  (cond
+    (= "float" type) #(Double. %)
+    (= "integer" type) #(Integer. %)
+    (= "string" type) identity))
+
+(defn- cast-subject-record
+  [{:keys [subject_schema]} record]
+  (reduce (fn [record [k t]] 
+            (update-in record (vector (name k)) (cast-row t)))
+          record
+          subject_schema))
 
 (defn create-schema
   [command schema]
@@ -100,12 +114,12 @@
 
 (defn create-subject
   [project subject]
-  (insert (subject-table project)
-          (values subject)))
+  (insert (qualify-table (subject-table project))
+          (values (cast-subject-record project subject))))
 
 (defn update-subject
   [project id subject]
-  (update (subject-table project)
+  (update (qualify-table (subject-table project))
           (where {:id id})
           (set-fields subject)))
 
