@@ -48,7 +48,7 @@
 (defn- drop-project-tables
   [name]
   (p/if-exists
-    (p/drop-table (qualify-table (str name "_subjects_collections"))))   
+    (p/drop-table (str name "_subjects_collections")))   
   (p/if-exists
     (p/drop-table (qualify-table (str name "_classifications"))))
   (p/if-exists
