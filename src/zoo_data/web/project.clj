@@ -1,6 +1,7 @@
 (ns zoo-data.web.project
   (:require [zoo-data.model.projects :as p]
             [zoo-data.web.user :as u]
+            [zoo-data.model.users :as us]
             [compojure.core :refer :all]
             [zoo-data.web.resp-util :refer :all]
             [clojure-csv.core :refer [parse-csv]]))
@@ -22,13 +23,15 @@
   (p/all))
 
 (defn- create-project-from-json
-  [{:strs [id name secondary-index display_name subject_schema classification_schema]}] 
-  (resp-created (p/create {:id id
+  [user {:strs [id name secondary-index display_name subject_schema classification_schema]}] 
+  (let [project (p/create {:id id
                            :name name
                            :secondary_index secondary-index
                            :subject_schema subject_schema
                            :display_name display_name
-                           :classification_schema classification_schema})))
+                           :classification_schema classification_schema})] 
+    (us/add-project (:id user) (:id project))
+    (resp-created project)))
 
 (defn read-csv-body
   [csv-body]
@@ -50,7 +53,7 @@
   (wrap-csv-body
     (routes
       (POST "/subjects" [project :as {body :body}]
-            (p/create-subjects project body))
+            (resp-no-content p/create-subjects project body))
       (PUT "/subjects" [project :as {body :body}]
            (p/update-subjects project body :replace))
       (PATCH "/subjects" [project :as {body :body}]
@@ -64,7 +67,7 @@
   (routes
     (context "/projects" []
              (GET "/" [] (resp-ok (all-projects)))
-             (POST "/" {body :body} (create-project-from-json body))
+             (POST "/" [user :as {body :body}] (create-project-from-json user body))
              (context "/:project" []
                       (wrap-project 
                         (routes 
@@ -75,5 +78,5 @@
                             (routes 
                               (PATCH "/" [project :as {body :body}] 
                                      (update-secondary-index project body))
-                              (DELETE "/" [project] (p/delete-project project))
+                              (DELETE "/" [project] (resp-no-content p/delete-project project))
                               subject-routes)))))))) 

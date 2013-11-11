@@ -22,7 +22,7 @@
 
 (defn resp-no-content*
   []
-  (resp 204 ""))
+  (resp 204 {}))
 
 (defn resp-not-authorized
   []
