@@ -25,6 +25,11 @@
       (insert :users_projects
               (values (map #(hash-map :project_id (name %) :user_id (name id)) roles))))))
 
+(defn add-project
+  [id project-id]
+  (insert :users_projects
+          (values {:user_id id :project_id project-id})))
+
 (defn select-by-id
   [id]
   (first (select db/user

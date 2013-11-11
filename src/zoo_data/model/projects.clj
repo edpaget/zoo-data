@@ -34,7 +34,9 @@
 (defn- cast-subject-record
   [{:keys [subject_schema]} record]
   (reduce (fn [record [k t]] 
-            (update-in record (vector (name k)) (cast-row t)))
+            (if (= "zooniverse_id" (name k)) 
+              (assoc (dissoc record k) :id (record k))
+              (update-in record (vector (name k)) (cast-row t))))
           record
           subject_schema))
 
@@ -49,12 +51,13 @@
   [name]
   (p/if-exists
     (p/drop-table (str name "_subjects_collections")))   
-  (p/if-exists
-    (p/drop-table (qualify-table (str name "_classifications"))))
-  (p/if-exists
-    (p/drop-table (qualify-table (str name "_denormalized_classifications"))))
-  (p/if-exists
-    (p/drop-table (qualify-table (str name "_subjects")))))
+  (p/in-schema :subject_classifications
+               (p/if-exists
+                 (p/drop-table (str name "_classifications")))
+               (p/if-exists
+                 (p/drop-table (str name "_denormalized_classifications")))
+               (p/if-exists
+                 (p/drop-table (str name "_subjects")))))
 
 (defn delete-project
   [{:keys [id name]}]
