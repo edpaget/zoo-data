@@ -4,13 +4,21 @@
             [korma.core :refer :all]
             [paneer.db :as pd]))
 
-(defn- qualify-table
+(defn qualify-table
   [table]
   (str "subject_classifications." table))
 
-(defn- subject-table
+(defn subject-table
   [project]
   (str (:name project) "_subjects"))
+ 
+(defn classification-table 
+  [project]
+  (str (:name project) "_classifications"))
+ 
+(defn d-classification-table 
+  [project]
+  (str (:name project) "_denormalized_classifications"))
  
 (defn- to-column
   [[name type]]
@@ -31,7 +39,7 @@
     (= "integer" type) #(Integer. %)
     (= "string" type) identity))
 
-(defn- cast-subject-record
+(defn- cast-datum-record
   [{:keys [subject_schema]} record]
   (reduce (fn [record [k t]] 
             (if (= "zooniverse_id" (name k)) 
@@ -115,27 +123,47 @@
   []
   (select db/project))
 
-(defn create-subject
-  [project subject]
-  (insert (qualify-table (subject-table project))
-          (values (cast-subject-record project subject))))
+(defn create-datum
+  [table project datum]
+  (insert table 
+          (values (cast-datum-record project datum))))
 
-(defn update-subject
-  [project id subject]
-  (update (qualify-table (subject-table project))
+(defn update-datum
+  [table project id datum]
+  (update table 
           (where {:id id})
-          (set-fields subject)))
+          (set-fields (cast-datum-record project datum))))
 
 (defn create-subjects
   [project subjects]
   (doseq [subject subjects]
-    (create-subject project subject)))
+    (create-datum (qualify-table (subject-table project)) subject)))
 
+(defn create-classifications
+  [project classifications]
+  (doseq [classification classifications]
+    (create-datum (qualify-table (classification-table project)) classification)))
+ 
+(defn create-d-classifications
+  [project d-classifications]
+  (doseq [d-classification d-classifications]
+    (create-datum (qualify-table (d-classification-table project)) d-classification)))
+ 
 (defn update-subjects
   [project subjects]
   (doseq [{:strs [zooniverse_id] :as subject} subjects]
-    (update-subject project zooniverse_id subject)))
+    (update-datum (qualify-table (subject-table project)) zooniverse_id subject)))
 
+(defn update-classifications
+  [project classifications]
+  (doseq [{:strs [zooniverse_id] :as classification} classifications]
+    (update-datum (qualify-table (classification-table project)) zooniverse_id classification)))
+
+(defn update-d-classifications
+  [project d-classifications]
+  (doseq [{:strs [zooniverse_id] :as d-classification} d-classifications]
+    (update-datum (qualify-table (d-classification-table project)) zooniverse_id d-classification)))
+ 
 (defn get-subjects 
   [{:keys [primary-index data-table classification-table]}]
   (let [query (select* data-table)]

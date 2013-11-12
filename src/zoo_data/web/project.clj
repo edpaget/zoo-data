@@ -59,9 +59,11 @@
       (PATCH "/subjects" [project :as {body :body}]
              (p/update-subjects project body))
       (PUT "/subjects/:id" [project id :as {body :body}]
-           (p/update-subject project id body :replace))
+           (resp-ok (p/update-datum (p/qualify-table (p/subject-table project)) 
+                             project id body :replace)))
       (PATCH "/subjects/:id" [project id :as {body :body}]
-             (p/update-subject project id body)))))
+             (resp-ok (p/update-datum (p/qualify-table (p/subject-table project)) 
+                                        project id body))))))
 
 (defroutes project-routes
   (routes
